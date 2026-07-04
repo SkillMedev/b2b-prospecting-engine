@@ -9,7 +9,7 @@ The top-of-funnel prospecting system that feeds an outbound motion — everythin
 ## Install
 
 - **From the catalog:** [skillme.dev/pack/b2b-prospecting-engine](https://skillme.dev/pack/b2b-prospecting-engine) — install the whole pack into Claude in one step.
-- **With the skills CLI:** `npx skills add aouellets/b2b-prospecting-engine`
+- **With the skills CLI:** `npx skills add SkillMedev/b2b-prospecting-engine`
 - **Manually:** copy any `skills/<slug>/SKILL.md` into your Claude skills directory.
 
 ## Skills in this pack
