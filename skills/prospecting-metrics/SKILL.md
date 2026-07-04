@@ -157,6 +157,18 @@ if (mode === "backsolve") {
 ## A/B testing without lying to yourself
 Cold-outbound reply rates are low, so you need *big* samples to detect small lifts. Rough intuition: to reliably tell a 2% reply rate from a 4% one you need on the order of ~1,000+ sends per variant; to split-hair a 2.0% vs 2.4% you need several thousand. **Never call a winner on 40 sends** — at a 2% base rate that's an expected 0.8 replies; the "winner" is noise. Rules: change exactly one variable (subject OR first line OR CTA, never all three), run both variants concurrently to the same ICP slice (channel/timing/list quality confound everything), and pre-commit the sample size. Hand sequence-structure tests to [[outreach-sequence-designer]].
 
+## Deliverable
+
+Produce a funnel model the team can rerun: the filled funnel template with every rate labeled MEASURED or ASSUMPTION, the backsolve from the quarter's target down to required contacts/week (with the feasibility check against per-rep capacity), the headline contacts-per-held-meeting number, and the `funnel.mjs` artifact configured with those rates so the model updates in one command when the real data lands.
+
+## Quality bar
+
+- Every conversion rate is labeled as measured (with the trailing window and sample size) or as a benchmark assumption.
+- The backsolve chain is shown stage by stage, not just the final contacts number.
+- The weekly activity requirement is checked against realistic rep capacity (~250-500 quality contacts/week/rep) and the gap, if any, is named.
+- No goal or test is gated on open rates.
+- Any A/B claim carries its per-variant sample size.
+
 ## Common failure modes
 - **Low delivery (<90%) / bounces high.** Not a copy problem — it's infrastructure. Domain reputation, warmup, list hygiene. Go to [[cold-email-deliverability]]. Sending more into a deliverability hole just burns the domain faster.
 - **Low reply rate (<1%) with good delivery.** Wrong people or wrong message. Re-check ICP/persona fit ([[icp-persona-builder]]); then the message itself ([[cold-email-craft]]). Don't add volume on top of a broken message.

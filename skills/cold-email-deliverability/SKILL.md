@@ -1,61 +1,62 @@
 ---
-name: cold-email-deliverability
-description: Use this skill BEFORE launching any cold outbound — it is the infrastructure layer beneath every sequence. Triggers — "my emails are going to spam", "set up a sending domain", "configure SPF DKIM DMARC", "how many emails can I send per day", "warm up a new domain", "why is my bounce rate high", "set up cold email infrastructure", "domain reputation burned", "inbox placement test", "deliverability checklist", "should I send from my main domain", "Google Postmaster Tools". Workflow — buy separate sending domains, authenticate DNS (SPF + DKIM + DMARC), age + warm mailboxes 2-4 weeks, cap per-mailbox volume and scale via mailbox pool, verify every address, keep content plain and clean, then monitor bounce/complaint/placement continuously. Do NOT use for writing the email copy itself — use [[cold-email-craft]]; do NOT use for designing the multi-step cadence — use [[outreach-sequence-designer]]; do NOT use for sizing the list — use [[prospect-list-builder]].
+name: Cold Email Deliverability
+description: Sets up and protects cold-outbound sending infrastructure — dedicated lookalike domains, SPF/DKIM/DMARC authentication, 2-4 week mailbox warm-up, 30-50 sends/day per-mailbox caps, and continuous bounce/complaint monitoring, with a runnable DNS audit script. Use when someone says "my emails are going to spam", "set up cold email infrastructure", "warm up a new domain", "configure SPF DKIM DMARC", "how many cold emails can I send per day", or "my domain got blacklisted". Do NOT use for protecting an opted-in marketing or transactional program on your primary domain — use email-deliverability instead; do NOT use for writing the email copy — use cold-email-craft instead; do NOT use for designing the multi-step cadence — use outreach-sequence-designer instead; do NOT use for sizing the list — use prospect-list-builder instead.
 ---
 
-# Protect Cold-Email Deliverability
+# Cold Email Deliverability
 
-Deliverability is not a copywriting problem; it is an infrastructure and reputation problem. The single most expensive mistake in cold outbound is sending it from your primary corporate domain — one spam-trap hit or complaint spike and your invoices, your hiring emails, and your founder's replies all start landing in spam, and that reputation damage is slow and painful to reverse. Treat cold sending as a blast radius you isolate on purpose: separate domains, separate mailboxes, conservative volume, and relentless monitoring.
+Deliverability is not a copywriting problem; it is an infrastructure and reputation problem. The single most expensive mistake in cold outbound is sending it from the primary corporate domain — one spam-trap hit or complaint spike and invoices, hiring emails, and the founder's replies all start landing in spam, and that damage is slow and painful to reverse. Treat cold sending as a blast radius to isolate on purpose: separate domains, separate mailboxes, conservative volume, relentless monitoring.
 
-The core insight: mailbox providers (Gmail, Outlook) score the *sending identity* — domain + IP + behavioral signals like complaints, bounces, and engagement — not the cleverness of your subject line. You earn primary-inbox placement by behaving like a real human correspondent at low volume, and you keep it by watching the signals that providers actually measure. Good copy on a burned domain still lands in spam.
+Mailbox providers (Gmail, Outlook) score the *sending identity* — domain + IP + behavioral signals like complaints, bounces, and engagement — not the cleverness of the subject line. Primary-inbox placement is earned by behaving like a real human correspondent at low volume. Good copy on a burned domain still lands in spam. Note the scope: cold outreach to people who never opted in. An opted-in newsletter or transactional program follows different rules (subdomains of the primary domain, higher warm-up ramps, sunset policies) — that is email-deliverability territory.
 
-## When to use this skill
+## Inputs to collect
 
-- You are about to launch cold outbound and have not set up dedicated sending infrastructure.
-- Reply rates cratered or messages are landing in spam/Promotions and you need to diagnose.
-- You are scaling volume and need to size mailboxes, domains, and list to capacity.
-- You are configuring DNS authentication and want SPF/DKIM/DMARC done correctly the first time.
-- A domain got flagged or blacklisted and you need a recovery plan.
+- Target daily send volume (or monthly prospect goal ÷ ~20 business days).
+- Primary corporate domain, and confirmation that it will NOT be used for cold sends.
+- Existing sending domains, their age, and any prior reputation damage (blacklist history, complaint spikes).
+- ESP/mailbox provider (Google Workspace, Microsoft 365) and any existing SPF includes on the sending domains.
+- List source and whether addresses are verified. If unverified, stop — route through lead-enrichment first.
+- Label any volume or list-quality figure the user estimates rather than measures as a guess.
 
 ## The workflow
 
-1. **Isolate the blast radius — separate sending domains.** Never send cold from your primary domain (`acme.com`). Register lookalike domains (`trygetacme.com`, `acme-team.com`, `getacme.io`) dedicated to outbound. Redirect them to your main site (301) so they resolve. If one gets burned, you pause and rotate it without touching corporate mail.
+1. **Isolate the blast radius — separate sending domains.** Never send cold from the primary domain (acme.com). Register lookalike domains (trygetacme.com, acme-team.com, getacme.io) dedicated to outbound. Redirect them (301) to the main site so they resolve. If one gets burned, pause and rotate it without touching corporate mail.
 
 2. **Authenticate DNS — all three, or you are getting filtered.**
-   - **SPF** (TXT record): authorizes which servers may send for the domain. Publish exactly **one** SPF record; multiple SPF TXT records = a permerror = fail. Stay under the **10 DNS-lookup limit** (each `include:` counts; nested includes count too). Example: `v=spf1 include:_spf.google.com ~all`.
-   - **DKIM** (TXT record at a selector subdomain, e.g. `selector._domainkey.domain`): cryptographically signs each message so the receiver verifies it wasn't altered and the domain authorized it. Use a per-domain **2048-bit** key (1024 is legacy/weak).
-   - **DMARC** (TXT at `_dmarc.domain`): tells receivers what to do when SPF/DKIM fail, and requires **alignment** (the visible From domain must match the authenticated domain). Start at `p=none` to monitor via aggregate reports, then tighten to `p=quarantine` and eventually `p=reject` once you confirm legitimate mail passes. Example: `v=DMARC1; p=none; rua=mailto:dmarc@domain; adkim=s; aspf=s`.
-   - All three together: SPF says "this server is allowed," DKIM says "this message is intact and authorized," DMARC ties them to the visible From and sets enforcement. Gmail/Yahoo bulk-sender rules effectively require all three.
+   - **SPF** (TXT record): authorizes which servers may send for the domain. Publish exactly **one** SPF record; multiple SPF TXT records = permerror = fail. Stay under the **10 DNS-lookup limit** (each include: counts; nested includes count too). Example: `v=spf1 include:_spf.google.com ~all`.
+   - **DKIM** (TXT at a selector subdomain, e.g. selector._domainkey.domain): cryptographically signs each message so the receiver verifies it was not altered and the domain authorized it. Use a per-domain **2048-bit** key (1024 is legacy/weak).
+   - **DMARC** (TXT at _dmarc.domain): tells receivers what to do when SPF/DKIM fail and requires **alignment** (visible From domain matches the authenticated domain). Start at `p=none` to monitor via aggregate reports, then tighten to `p=quarantine` and eventually `p=reject` once legitimate mail passes cleanly. Example: `v=DMARC1; p=none; rua=mailto:dmarc@domain; adkim=s; aspf=s`.
+   - Together: SPF says "this server is allowed," DKIM says "this message is intact and authorized," DMARC ties them to the visible From and sets enforcement. Gmail/Yahoo bulk-sender rules effectively require all three.
 
-3. **Age and warm before you send a single real prospect.** Brand-new domains have zero reputation and get filtered hard. Let the domain age (ideally register a couple weeks before you need it), then **warm each mailbox for ~2-4 weeks**: start at a handful of sends/day and ramp gradually, mixed with received + replied mail (warmup tools or a manual network) so providers see natural two-way engagement before volume climbs.
+3. **Age and warm before sending a single real prospect.** Brand-new domains have zero reputation and get filtered hard. Register at least 2 weeks before launch, then **warm each mailbox for 2-4 weeks**: start at ~5 sends/day and ramp gradually toward the cap, mixed with received and replied mail (warmup tools or a manual network) so providers see natural two-way engagement before volume climbs.
 
-4. **Cap per-mailbox volume and scale horizontally.** A single mailbox has a conservative real-world ceiling for cold — treat **~30-50 cold sends/day/mailbox** as the cap, not a target. To send more, add mailboxes (2-3 per domain) and rotate across a **mailbox pool**. Size your list to capacity: 5 mailboxes × 40/day ≈ 200 new prospects/day. Sequencing this against list size is [[prospect-list-builder]] territory.
+4. **Cap per-mailbox volume and scale horizontally.** Treat **~30-50 cold sends/day/mailbox** as the ceiling, not a target. To send more, add mailboxes (2-3 per domain) and rotate across a pool. Size the list to capacity: 5 mailboxes × 40/day ≈ 200 new prospects/day. Sequencing volume against list size is prospect-list-builder territory.
 
-5. **List hygiene — verify before you send.** Every address goes through verification first (see [[lead-enrichment]]). Remove invalids, role accounts (`info@`, `sales@`), and risky **catch-all** domains, or sample them carefully. **Bounce rate is the fastest way to torch a new domain** — keep it under ~2-3%. A dirty list will burn warm infrastructure in a single batch.
+5. **List hygiene — verify before sending.** Every address goes through verification first (lead-enrichment). Remove invalids, role accounts (info@, sales@), and risky catch-all domains, or sample them carefully. **Bounce rate is the fastest way to torch a new domain** — keep it under 2-3%. A dirty list burns warm infrastructure in a single batch.
 
-6. **Content hygiene — look like a person, not a campaign.** Plain text beats heavy HTML/templated layouts. **No images and at most one link in the first touch** (links are the #1 silent spam trigger). Avoid spam-trigger phrasing ("free", "guarantee", "act now", excessive caps/exclamation). Use a **custom tracking domain** if you track opens, or turn open-tracking off entirely — shared tracking domains are widely blacklisted. Include a real, plain-text opt-out.
+6. **Content hygiene — look like a person, not a campaign.** Plain text beats heavy HTML. **No images and at most one link in the first touch** (links are the top silent spam trigger). Avoid spam-trigger phrasing ("free", "guarantee", "act now", excessive caps/exclamation). Use a **custom tracking domain** if tracking opens, or turn open-tracking off — shared tracking domains are widely blacklisted. Include a real, plain-text opt-out.
 
-7. **Monitor the signals providers actually measure.** Watch **bounce rate** (<2-3%), **spam-complaint rate** (keep well under 0.1% — Gmail's red line is 0.3%), and **reply rate** as a health proxy (a sudden drop often means placement collapsed, not worse copy). Run **seed/inbox-placement tests** (send to a seed set across Gmail/Outlook/Yahoo, check primary vs spam) before and during campaigns. Enroll sending domains in **Google Postmaster Tools** for real reputation + spam-rate data from Google itself.
+7. **Monitor the signals providers actually measure.** Watch **bounce rate** (<2-3%), **spam-complaint rate** (keep well under 0.1% — the red line; Gmail enforces at 0.3%), and **reply rate** as a health proxy (a sudden drop usually means placement collapsed, not worse copy). Run seed/inbox-placement tests across Gmail/Outlook/Yahoo before and during campaigns. Enroll every sending domain in Google Postmaster Tools for real reputation and spam-rate data.
 
-8. **When a domain gets burned: pause, diagnose, rotate.** Stop sending from it immediately. Diagnose: check blacklists (MXToolbox), Postmaster reputation, recent bounce/complaint spike, and whether DNS auth silently broke. Light damage → drop volume to near-zero and re-warm for weeks. Heavy damage (blacklisted, complaint spike) → retire the domain, rotate to a fresh warmed one, and fix the upstream cause (bad list, aggressive volume) before reusing the pattern.
+8. **When a domain gets burned: pause, diagnose, rotate.** Stop sending from it immediately. Check blacklists (MXToolbox), Postmaster reputation, recent bounce/complaint spikes, and whether DNS auth silently broke. Light damage: drop volume to near-zero and re-warm for weeks. Heavy damage (blacklisted, complaint spike): retire the domain, rotate to a fresh warmed one, and fix the upstream cause — bad list or aggressive volume — before reusing the pattern.
 
-## Pre-launch deliverability checklist
+## Pre-flight checklist
 
 ```
 INFRASTRUCTURE
-[ ] Sending domain(s) are SEPARATE from primary corporate domain
-[ ] Each sending domain redirects (301) to the main site and resolves
+[ ] Sending domain(s) SEPARATE from primary corporate domain
+[ ] Each sending domain 301-redirects to the main site and resolves
 [ ] Domain registered >= 2 weeks ago (aged, not same-day)
 
 AUTHENTICATION (verify with the audit script below)
 [ ] Exactly ONE SPF TXT record, ends in ~all or -all, under 10 DNS lookups
 [ ] DKIM published at selector._domainkey, 2048-bit key, signs outbound
 [ ] DMARC at _dmarc, p=none to start, rua= reporting address set
-[ ] SPF + DKIM alignment with the visible From domain (DMARC passes)
+[ ] SPF + DKIM align with the visible From domain (DMARC passes)
 
 WARMUP & VOLUME
-[ ] Each mailbox warmed 2-4 weeks, volume ramped gradually
-[ ] Per-mailbox daily cap set (<= ~30-50 cold sends/day)
+[ ] Each mailbox warmed 2-4 weeks, volume ramped gradually from ~5/day
+[ ] Per-mailbox daily cap set (<= 30-50 cold sends/day)
 [ ] Mailbox pool + rotation configured; list sized to total capacity
 
 LIST & CONTENT
@@ -77,23 +78,23 @@ Goal: reach ~4,000 net-new prospects/month (~200/business day).
 
 ```
 Capacity math:  200/day ÷ 40 cold sends/mailbox/day = 5 mailboxes needed.
-Domains:        2 sending domains, 3 mailboxes each = 6 mailboxes (1 spare for rotation).
+Domains:        2 sending domains, 3 mailboxes each = 6 mailboxes (1 spare).
                 trygetacme.com  -> ava@, ava.chen@, hello@   (301 -> acme.com)
                 acme-team.com   -> ava@, ava.chen@, hello@   (301 -> acme.com)
-DNS per domain: SPF   TXT @            v=spf1 include:_spf.google.com ~all
+DNS per domain: SPF   TXT @              v=spf1 include:_spf.google.com ~all
                 DKIM  TXT google._domainkey   (2048-bit, from Google Admin)
-                DMARC TXT _dmarc      v=DMARC1; p=none; rua=mailto:dmarc@acme.com; adkim=s; aspf=s
+                DMARC TXT _dmarc  v=DMARC1; p=none; rua=mailto:dmarc@acme.com; adkim=s; aspf=s
 Timeline:       Wk 0 register + DNS + redirect.  Wk 1-3 warm all 6 mailboxes
                 (start ~5/day, ramp to ~40).  Wk 4 begin real sends at full cap.
 Real volume:    5 active mailboxes × 40 = 200/day.  Hold 1 mailbox in reserve.
 List sizing:    queue ~200 verified prospects/day; bounce budget < 6/day (3%).
-Guardrails:     complaint rate alert at 0.1%; if any domain spikes, pause it,
+Guardrails:     complaint-rate alert at 0.1%; if any domain spikes, pause it,
                 shift load to the spare, re-warm, diagnose before resuming.
 ```
 
 ## Authentication audit script (Node, zero deps)
 
-Run before launch and on a schedule. `node check-deliverability.mjs trygetacme.com [dkim-selector]`
+Run before launch and on a schedule: `node check-deliverability.mjs trygetacme.com [dkim-selector]`
 
 ```javascript
 #!/usr/bin/env node
@@ -176,17 +177,35 @@ const order = { FAIL: 0, WARN: 1, PASS: 2 };
 out.sort((a, b) => order[a.level] - order[b.level]);
 for (const r of out) console.log(`[${r.level.padEnd(4)}] ${r.label.padEnd(5)} ${r.msg}`);
 const fails = out.filter(r => r.level === 'FAIL').length;
-console.log(`\n${fails ? `❌ ${fails} blocking issue(s) — fix before sending.` : '✅ no blocking auth issues.'}`);
+console.log(`\n${fails ? `${fails} blocking issue(s) — fix before sending.` : 'No blocking auth issues.'}`);
 process.exit(fails ? 1 : 0);
 ```
 
+Expected output on a healthy domain:
+
+```
+[PASS] SPF   1 record, 3 lookups, soft fail policy
+[PASS] DKIM  key present at selector "google", ~2048-bit
+[WARN] DMARC p=none (monitor-only — tighten toward quarantine/reject), reporting on
+
+No blocking auth issues.
+```
+
+## Deliverable
+
+Produce a launch-ready infrastructure plan: the domain and mailbox pool sized to the target volume with the capacity math shown, the three DNS records per domain, a week-by-week warm-up ramp, the completed pre-flight checklist, and the audit script output showing zero FAILs.
+
 ## Common failure modes
 
-- **Sending cold from the primary domain.** The classic catastrophe. One complaint spike poisons all corporate mail. Always isolate on dedicated domains.
+- **Sending cold from the primary domain.** The classic catastrophe — one complaint spike poisons all corporate mail. Always isolate on dedicated domains.
 - **Two SPF records, or blowing the 10-lookup limit.** Both produce a permerror and silently fail SPF — common after adding a second ESP. Flatten or consolidate; the script catches both.
-- **DMARC at `p=none` forever.** `p=none` only monitors; it provides no enforcement. It's a starting point, not a destination — move to quarantine/reject once mail passes cleanly.
-- **Skipping warmup.** Blasting a brand-new domain at full volume is the single fastest way to land in spam permanently. Warm for weeks, ramp slowly.
-- **Treating the daily cap as a target.** ~40/mailbox is a ceiling for *cold* mail; pushing past it to hit a number trades short-term reach for a burned domain. Scale with more mailboxes, not more per mailbox.
-- **Unverified lists / catch-all domains.** A high bounce batch torches even well-warmed infrastructure instantly. Verify first ([[lead-enrichment]]); keep bounces under 2-3%.
-- **Open-tracking on a shared/blacklisted tracking domain, or image-heavy HTML.** Both scream "bulk campaign." Use a custom tracking domain or none, and keep the first touch plain.
-- **No monitoring until replies dry up.** By then the domain is already burned. Watch complaint/bounce rates and run placement tests *continuously*, and enroll in Google Postmaster Tools from day one.
+- **DMARC stuck at p=none forever.** It only monitors, never enforces. Move to quarantine/reject once mail passes cleanly.
+- **Skipping warmup.** Blasting a brand-new domain at full volume is the fastest way to land in spam permanently.
+- **Treating the daily cap as a target.** ~40/mailbox is a ceiling for cold mail; scale with more mailboxes, not more per mailbox.
+- **Unverified lists / catch-all domains.** One high-bounce batch torches well-warmed infrastructure. Verify first; keep bounces under 2-3%.
+- **Open-tracking on a shared tracking domain, or image-heavy HTML.** Both scream bulk campaign. Custom tracking domain or none.
+- **No monitoring until replies dry up.** By then the domain is burned. Watch complaint and bounce rates continuously; enroll in Postmaster Tools from day one.
+
+## Quality bar
+
+The setup ships only when: every pre-flight checkbox is ticked; the audit script reports zero FAILs on every sending domain; each mailbox has completed its 2-4 week ramp; the seed test lands in the primary inbox on Gmail and Outlook; and alerts exist for bounce >2%, complaints >0.1%, and reply-rate collapse. If any sending domain is also the corporate domain, do not launch — that configuration belongs to email-deliverability rules and must never carry cold volume.

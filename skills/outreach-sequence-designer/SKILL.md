@@ -72,6 +72,18 @@ BRANCHES: reply→stop+route to rep | booked→stop | opt-out→suppress |
 
 A reply at any step stops the sequence and routes to the rep. A hard bounce on Day 1 pauses everything and flags the contact for list cleaning before the domain takes damage. Read the run in [[prospecting-metrics]]: if Day 18 breakup is your top-replying step, your earlier angles are too weak — fix the front of the cadence, don't add more steps to the back.
 
+## Deliverable
+
+Produce a sequence spec ready to build in a tool ([[apollo-prospecting]]): the filled template above — goal, exit/branch rules, tier, signal hook, and the day-by-day step table with channel, angle, and personalization depth per touch — plus a one-line copy brief per step for [[cold-email-craft]] (the angle and the ask, not the words), and the single A/B variable the first run will test with its pre-committed sample size.
+
+## Quality bar
+
+- At least two channels beyond email appear in the cadence, or the omission is a deliberate, stated choice.
+- Every touch has a distinct angle — no step whose brief reduces to "bump."
+- Exit and branch rules cover reply, booked, opt-out, hard bounce, and soft bounce explicitly.
+- The cadence's total daily volume fits inside the [[cold-email-deliverability]] caps for the sending infrastructure it will run on.
+- The sequence ends on a breakup touch.
+
 ## Common failure modes
 
 - **Email-only "sequences."** Three emails is not multi-channel. Without LinkedIn and a call you forfeit the prospects who never open email.

@@ -108,6 +108,18 @@ accounts.map(score)
 
 Expected ordering: Northwind (fresh champion move) tops it, Globex next (two medium signals), Initech mid (noisy intent), Soylent low (decayed funding), BadFit zero (gated by fit). Tune `WEIGHTS` and `HALF_LIFE_DAYS` from your own conversion data per step 6.
 
+## Deliverable
+
+Produce a signal-driven prioritization pack containing: (1) the signal inventory — every signal category you can actually detect, each with its strength tier, source, and freshness SLA; (2) a filled signal → play mapping (template above) for each live signal, including the written "why now" opener; (3) the ranked account list from the scoring artifact, with fit, signal score, and total shown per account; and (4) the week's working batch — the top N accounts with their assigned play and sequence, ready to hand to [[outreach-sequence-designer]].
+
+## Quality bar
+
+- Every account on the working batch has at least one signal fresher than its SLA — no stale triggers dressed up as news.
+- Every "why now" line leads with *their* event and would survive being read aloud to the prospect.
+- Fit gates the score: no zero-fit account appears in the batch, however hot its signal.
+- Signal weights are either backed by your own conversion data or explicitly labeled as starting hypotheses.
+- The batch is sized to what reps can actually touch this week, not to how many accounts scored above zero.
+
 ## Common failure modes
 - **Spraying on any signal.** Treating a weak intent ping like a champion move. Weight and gate by fit, then work top-down.
 - **Stale signals.** Acting on a 6-month-old funding round as if it's news. Decay everything; set freshness SLAs.

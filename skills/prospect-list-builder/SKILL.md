@@ -29,7 +29,7 @@ If your data is already gathered but dirty or incomplete, that's [[lead-enrichme
 
 4. **Set contacts-per-account by tier to multi-thread the committee.** Tier 1: 3-5 contacts spanning the committee (economic buyer, champion, 1-2 influencers/users). Tier 2: 2-3. Tier 3: 1-2. Never pull the whole org chart — that's noise and a spam signal. Name the *roles* you want per account, not just a count, so you cover decision-maker + influencer rather than three peers.
 
-5. **Suppress against the CRM — this is non-negotiable.** Before the list is "done," diff it against: existing customers, open opportunities (never let an SDR cold-prospect an account your AE is closing), recently-worked/recently-contacted leads, do-not-contact / unsubscribed, and competitors/partners. A list that re-prospects an open opp is worse than no list — it actively damages deals and trust.
+5. **Suppress against the CRM — this is non-negotiable.** Before the list is "done," diff it against: existing customers, open opportunities (never let an SDR cold-prospect an account your AE is closing), leads worked or contacted within the past 90 days, do-not-contact / unsubscribed, and competitors/partners. A list that re-prospects an open opp is worse than no list — it actively damages deals and trust.
 
 6. **QA the list before it touches a sequence.** Spot-check 20-30 rows by hand: do the people actually match the persona? Are titles real or junk ("Founder" at a 5,000-person co is suspicious)? Is the company actually in-ICP or did a filter overmatch? Check email presence/quality and role-based addresses. Run the cleaning artifact below. A 5% bad-data rate at 5,000 contacts is 250 bounces — enough to wreck deliverability.
 
@@ -160,6 +160,18 @@ process.stdout.write(out.map(r => r.map(esc).join(',')).join('\n') + '\n');
 console.error(`kept=${kept} dropped_invalid=${droppedInvalid} ` +
   `dropped_role=${droppedRole} flagged_dupe=${flaggedDupe}`);
 ```
+
+## Deliverable
+
+Produce a filled list build spec (template above) plus the list itself: a tiered, CRM-suppressed, QA-passed CSV of accounts and contacts — each row carrying account tier, contact role on the buying committee, and the written filter reason it matched — sized to the sending infrastructure's capacity, with the raw-match, post-suppression, and final counts recorded so the shrinkage is auditable. Hand it to [[outreach-sequence-designer]] with the Tier 1 batch flagged to work first.
+
+## Quality bar
+
+- Every account maps to a written filter reason — nothing on the list "just seemed right."
+- Suppression against customers, open opps, contacts worked in the past 90 days, and DNC is done and the counts removed are recorded.
+- 20-30 rows are hand-checked against the persona and the miss rate is under ~5%.
+- Tier 1 and Tier 2 accounts have named committee roles, not just a contact count.
+- Final list size fits mailboxes × daily cap × send-days with a bounce buffer.
 
 ## Common failure modes
 

@@ -25,7 +25,7 @@ Do **not** use this skill to invent the strategy — that lives in the methodolo
 
 ### 1. Translate your ICP into Apollo filters ([[icp-persona-builder]] → People/Company Search)
 
-Build the **company** layer first, then the **person** layer on top. In Apollo's People Search and Company Search you stack filters; each filter narrows the set, so add them deliberately and watch the result count.
+Build the **company** layer first, then the **person** layer on top. In Apollo's People Search and Company Search you stack filters; each filter narrows the set, so add them deliberately and watch the result count. A useful sanity band: a persona-per-tier search that returns more than ~5,000 people is almost certainly under-filtered, and one returning under ~100 may be over-constrained for a sustained sequence.
 
 - **Firmographic:** industry/keywords, employee headcount band, revenue (where available), HQ geography. Map these straight from your ICP's account definition.
 - **Technographic:** "uses technology X" filters — powerful for ICPs defined by a tech stack (e.g. targets running a specific CRM, cloud, or e-commerce platform).
@@ -50,7 +50,7 @@ A prospect who is already a customer or an open opp landing in a cold sequence i
 Apollo spends **credits** to reveal/verify contact data and to export. Treat credits as cash:
 
 - Reveal/verify emails only for contacts that survived filtering and suppression. Never reveal an entire broad search.
-- Respect the **email verification state**. Send to verified/valid addresses; hold or route catch-all/unknown/guessed states differently (lower volume, or skip). Sending to unverified addresses is how you manufacture bounces.
+- Respect the **email verification state**. Send to verified/valid addresses; hold or route catch-all/unknown/guessed states differently (lower volume, or skip). Sending to unverified addresses is how you manufacture bounces — and a bounce rate above roughly 2% is the red line where mailbox providers start throttling you; past 5% you are in serious reputation damage.
 - Pull "Net New" leads (not already in your data) deliberately, in batches sized to what you can actually work.
 - Decide your CRM sync path up front: CSV export for one-offs, or the **Apollo API / native CRM integration** for repeatable syncing. Keep the field mapping consistent so downstream reporting in [[prospecting-metrics]] holds together.
 
@@ -71,15 +71,15 @@ Build the cadence you designed as an Apollo **Sequence** — multi-step, mixing 
 
 - Write the email copy in [[cold-email-craft]] — this skill only places it into steps.
 - Set sane delays between steps and cap daily send volume per mailbox (see step 6).
-- A/B test at the **step** level (subject or first line), and read results against [[prospecting-metrics]] — not vanity opens.
+- A/B test at the **step** level (subject or first line), and read results against [[prospecting-metrics]] — not vanity opens. For calibration: a healthy cold sequence typically lands a 1–5% reply rate; if you are under 1% after ~200 sends, stop and fix targeting or copy before spending more list.
 
 ### 6. Protect deliverability before you press start ([[cold-email-deliverability]])
 
 Apollo sends through **mailboxes you connect** — it does not fix bad DNS. Before any sequence goes live:
 
 - Connect **dedicated sending mailboxes on a separate sending domain**, not your primary corporate domain. Cold-sequence reputation damage should never touch the domain your company runs its real email on.
-- Make sure those domains/mailboxes are authenticated (SPF/DKIM/DMARC) and warmed — do this in [[cold-email-deliverability]], not here.
-- Respect conservative per-mailbox daily limits and let Apollo throttle. Split volume across mailboxes rather than overloading one.
+- Make sure those domains/mailboxes are authenticated (SPF/DKIM/DMARC) and warmed — do this in [[cold-email-deliverability]], not here. Budget 2–4 weeks of warmup for a fresh mailbox before it carries cold volume.
+- Respect conservative per-mailbox daily limits — roughly 20–50 cold sends per mailbox per day is the practitioner range; scale by adding mailboxes, not by pushing one past it — and let Apollo throttle.
 
 ## Apollo filter recipe (ICP → stacked filters)
 
@@ -113,7 +113,7 @@ SIGNAL OVERLAY (separate saved search + alert)
 ```
 Sequence: "Tier A — Data leaders — MM fintech"
 Mailboxes: 2 dedicated boxes on outbound.example-go.com (warmed, authed)
-Daily cap: conservative per mailbox; split across both
+Daily cap: conservative per mailbox (~20–50 cold sends); split across both
 
 Day 1  · Auto email   · Step A1 — problem-led opener (copy from cold-email-craft)
 Day 2  · Manual task  · LinkedIn — view + connect, no pitch
@@ -138,10 +138,21 @@ Read: reply rate + positive-reply rate per step (NOT open rate).
 5. **Sequence.** I build the 7-step cadence above across two warmed mailboxes on a dedicated outbound domain, paste copy from [[cold-email-craft]], set conservative caps, and A/B the opener subject.
 6. **Read.** A week in, I judge by reply and positive-reply rate per step in [[prospecting-metrics]] — and ignore open rate entirely (see below).
 
+## Deliverable
+
+Produce a working Apollo setup plus a one-page run sheet documenting it: the saved searches (one per persona-per-tier, plus signal variants with alerts on), the tiered and suppressed Lists with their counts at each stage (raw → suppressed → verified send-ready), the verification routing rule (verified send / catch-all low-volume / unknown skip), the CRM sync path and field mapping, and the live Sequence outline with mailboxes, daily caps, step schedule, and the single A/B variable. The run sheet is what lets a second rep — or you in a month — reproduce and audit the setup.
+
+## Quality bar
+
+- Every saved search maps to exactly one persona-per-tier from the ICP; none is an untierable mega-search.
+- No contact enters a sequence without passing CRM suppression and holding a verified email state.
+- All sending mailboxes are on a dedicated outbound domain, authenticated and warmed, with daily caps inside the 20–50 range.
+- The sequence mixes auto emails with manual LinkedIn/call tasks; success is read in replies and positive replies, never opens.
+
 ## Common failure modes
 
 - **Blasting sequences from your primary domain.** The fastest way to poison the email your whole company depends on. Always send from dedicated, authenticated, warmed domains/mailboxes. Apollo connects the mailbox; it does not fix your DNS — that is [[cold-email-deliverability]].
-- **Ignoring verification states.** Treating catch-all/unknown/guessed like verified manufactures bounces, which wrecks reputation and corrupts your metrics. Send to verified; route or skip the rest.
+- **Ignoring verification states.** Treating catch-all/unknown/guessed like verified manufactures bounces, which wrecks reputation and corrupts your metrics. Send to verified; route or skip the rest. Watch the 2% bounce red line.
 - **Over-broad filters that burn credits.** Revealing a 50k-row search "to see who's there" spends your data budget on contacts you will never work. Filter and suppress *before* you reveal/export; reveal only what you can actually sequence.
 - **Not suppressing customers and open opps.** Cold-emailing a current customer or an active deal embarrasses the rep and pollutes reporting. Suppress against the CRM every time, before sequencing.
 - **Relying on open rate.** Apple Mail Privacy Protection and image proxies inflate opens into noise. Optimize for replies, positive replies, and meetings — the funnel math in [[prospecting-metrics]] — not opens.
